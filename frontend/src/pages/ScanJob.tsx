@@ -1,16 +1,48 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { predictJobText, type PredictApiResponse } from '@/lib/api';
 
 export default function ScanJob() {
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [jobTitle, setJobTitle] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [salaryOffered, setSalaryOffered] = useState('');
+  const [jobDescription, setJobDescription] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [applyLink, setApplyLink] = useState('');
+  const [result, setResult] = useState<PredictApiResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setResult(null);
+    setError(null);
     setLoading(true);
-    setTimeout(() => { setLoading(false); navigate('/result'); }, 2500);
+
+    try {
+      const text = [
+        `Job Title: ${jobTitle}`,
+        `Company Name: ${companyName}`,
+        `Salary Offered: ${salaryOffered}`,
+        `Job Description: ${jobDescription}`,
+        `Contact Email: ${contactEmail}`,
+        applyLink ? `Apply Link: ${applyLink}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n');
+
+      const prediction = await predictJobText(text);
+      setResult(prediction);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to analyze job posting.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const predictionLabel = result?.prediction === 1 ? 'Fake Job' : 'Real Job';
+  const predictionColor = result?.prediction === 1 ? 'text-danger' : 'text-success';
+  const confidencePercent = result ? ((result.confidence <= 1 ? result.confidence * 100 : result.confidence).toFixed(2)) : null;
 
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto animate-fade-in">
@@ -24,17 +56,35 @@ export default function ScanJob() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1.5">Job Title <span className="text-danger">*</span></label>
-              <input required placeholder="e.g. Software Engineer" className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+              <input
+                required
+                value={jobTitle}
+                onChange={e => setJobTitle(e.target.value)}
+                placeholder="e.g. Software Engineer"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1.5">Company Name <span className="text-danger">*</span></label>
-              <input required placeholder="e.g. Acme Corporation" className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+              <input
+                required
+                value={companyName}
+                onChange={e => setCompanyName(e.target.value)}
+                placeholder="e.g. Acme Corporation"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1.5">Salary Offered <span className="text-danger">*</span></label>
-            <input required placeholder="e.g. $5,000/month or $500/week" className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+            <input
+              required
+              value={salaryOffered}
+              onChange={e => setSalaryOffered(e.target.value)}
+              placeholder="e.g. $5,000/month or $500/week"
+              className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            />
           </div>
 
           <div>
@@ -42,6 +92,8 @@ export default function ScanJob() {
             <textarea
               required
               rows={5}
+              value={jobDescription}
+              onChange={e => setJobDescription(e.target.value)}
               placeholder="Paste the full job description here..."
               className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
             />
@@ -50,11 +102,24 @@ export default function ScanJob() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1.5">Contact Email <span className="text-danger">*</span></label>
-              <input type="email" required placeholder="recruiter@company.com" className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+              <input
+                type="email"
+                required
+                value={contactEmail}
+                onChange={e => setContactEmail(e.target.value)}
+                placeholder="recruiter@company.com"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1.5">Apply Link <span className="text-muted-foreground font-normal">(optional)</span></label>
-              <input type="url" placeholder="https://company.com/apply" className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+              <input
+                type="url"
+                value={applyLink}
+                onChange={e => setApplyLink(e.target.value)}
+                placeholder="https://company.com/apply"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              />
             </div>
           </div>
 
@@ -86,6 +151,33 @@ export default function ScanJob() {
           <div>
             <p className="text-sm font-medium text-primary">AI is analyzing the job posting...</p>
             <p className="text-xs text-muted-foreground">Checking against 50+ scam indicators</p>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-4 rounded-2xl border border-danger/20 bg-danger-light p-4 animate-fade-in">
+          <p className="text-sm font-semibold text-danger">Prediction failed</p>
+          <p className="text-sm text-muted-foreground mt-1">{error}</p>
+        </div>
+      )}
+
+      {result && !loading && (
+        <div className="mt-4 rounded-2xl border border-border bg-card shadow-card p-5 animate-fade-in">
+          <div className="flex items-start gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${result.prediction === 1 ? 'bg-danger-light' : 'bg-success-light'}`}>
+              {result.prediction === 1 ? (
+                <AlertTriangle className="w-5 h-5 text-danger" />
+              ) : (
+                <CheckCircle2 className="w-5 h-5 text-success" />
+              )}
+            </div>
+
+            <div className="flex-1">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Model Result</p>
+              <h2 className={`text-xl font-bold ${predictionColor}`}>{predictionLabel}</h2>
+              <p className="text-sm text-muted-foreground mt-1">Confidence: {confidencePercent}%</p>
+            </div>
           </div>
         </div>
       )}
