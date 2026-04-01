@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
-  LayoutDashboard, Search, Upload, BarChart2, Shield, LogOut, ChevronLeft, ChevronRight
+  LayoutDashboard, Search, Upload, BarChart2, History, Shield, LogOut, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -10,6 +10,7 @@ const navItems = [
   { label: 'Scan Job', icon: Search, to: '/scan' },
   { label: 'Offer Letter', icon: Upload, to: '/offer-letter' },
   { label: 'Analytics', icon: BarChart2, to: '/analytics' },
+  { label: 'History', icon: History, to: '/history' },
 ];
 
 export function Sidebar() {
@@ -26,7 +27,7 @@ export function Sidebar() {
         <div className="w-8 h-8 rounded-lg gradient-hero flex items-center justify-center flex-shrink-0">
           <Shield className="w-4 h-4 text-white" />
         </div>
-        {!collapsed && <span className="font-bold text-sm text-foreground leading-tight">JobGuard AI</span>}
+        {!collapsed && <span className="font-bold text-sm text-foreground leading-tight">CareerShield AI</span>}
       </div>
 
       {/* Nav */}

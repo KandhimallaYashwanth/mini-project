@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Search, Upload, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, Search, Upload, BarChart2, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -7,6 +7,7 @@ const navItems = [
   { label: 'Scan', icon: Search, to: '/scan' },
   { label: 'Upload', icon: Upload, to: '/offer-letter' },
   { label: 'Analytics', icon: BarChart2, to: '/analytics' },
+  { label: 'History', icon: History, to: '/history' },
 ];
 
 export function BottomNav() {

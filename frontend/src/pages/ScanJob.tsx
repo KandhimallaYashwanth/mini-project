@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Search, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { predictJobText, type PredictApiResponse } from '@/lib/api';
+import { Search, Loader2 } from 'lucide-react';
+import { predictJob, type PredictApiResponse } from '@/lib/api';
+import PredictionResultCard from '@/components/PredictionResultCard';
 
 export default function ScanJob() {
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ export default function ScanJob() {
         .filter(Boolean)
         .join('\n');
 
-      const prediction = await predictJobText(text);
+      const prediction = await predictJob(text);
       setResult(prediction);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to analyze job posting.');
@@ -39,10 +40,6 @@ export default function ScanJob() {
       setLoading(false);
     }
   };
-
-  const predictionLabel = result?.prediction === 1 ? 'Fake Job' : 'Real Job';
-  const predictionColor = result?.prediction === 1 ? 'text-danger' : 'text-success';
-  const confidencePercent = result ? ((result.confidence <= 1 ? result.confidence * 100 : result.confidence).toFixed(2)) : null;
 
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto animate-fade-in">
@@ -162,25 +159,7 @@ export default function ScanJob() {
         </div>
       )}
 
-      {result && !loading && (
-        <div className="mt-4 rounded-2xl border border-border bg-card shadow-card p-5 animate-fade-in">
-          <div className="flex items-start gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${result.prediction === 1 ? 'bg-danger-light' : 'bg-success-light'}`}>
-              {result.prediction === 1 ? (
-                <AlertTriangle className="w-5 h-5 text-danger" />
-              ) : (
-                <CheckCircle2 className="w-5 h-5 text-success" />
-              )}
-            </div>
-
-            <div className="flex-1">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Model Result</p>
-              <h2 className={`text-xl font-bold ${predictionColor}`}>{predictionLabel}</h2>
-              <p className="text-sm text-muted-foreground mt-1">Confidence: {confidencePercent}%</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {result && !loading && <PredictionResultCard result={result} />}
     </div>
   );
 }

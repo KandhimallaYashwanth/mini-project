@@ -12,6 +12,7 @@ import ScanJob from "./pages/ScanJob";
 import OfferLetter from "./pages/OfferLetter";
 import Result from "./pages/Result";
 import Analytics from "./pages/Analytics";
+import History from "./pages/History";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,7 +22,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/offer-letter" element={<OfferLetter />} />
             <Route path="/result" element={<Result />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/history" element={<History />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
